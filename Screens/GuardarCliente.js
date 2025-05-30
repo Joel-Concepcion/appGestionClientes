@@ -1,13 +1,11 @@
 import { StyleSheet, View, Text, Alert, TextInput, TouchableOpacity } from "react-native";
 import { Picker } from '@react-native-picker/picker';
-
-
-import React, { useState } from 'react';
-
-
+import uuid from 'react-native-uuid';
+import React, { useEffect, useState } from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 export default function GuardarCliente({ route, navigation }) {
+
 
     const formatCedula = (text) => {
         let cleaned = text.replace(/[^0-9A-Za-z]/g, "");
@@ -33,102 +31,131 @@ export default function GuardarCliente({ route, navigation }) {
         return cleaned;
     };
 
-    const { guardarNuevo } = route.params;
+    //const { guardarNuevo } = route.params;
+    const cliente = route.params?.cliente;
+    //const { guardarNuevo, clienteEditar } = route.params;
+    const { guardarNuevo, clienteEditar, actualizarCliente } = route.params;
 
-    const [cedula, setCedula] = useState("");
-    const [nombre, setNombres] = useState("");
-    const [apellidos, setApellidos] = useState("");
-    const [fechaNacimiento, setFechaNacimiento] = useState("");
-    const [sexo, setSexo] = useState("");
+    const [cedula, setCedula] = useState(clienteEditar?.nuevaCedula ?? "");
+    const [nombre, setNombres] = useState(clienteEditar?.nuevoNombre ?? "");
+    const [apellidos, setApellidos] = useState(clienteEditar?.nuevosApellidos ?? "");
+    const [fechaNacimiento, setFechaNacimiento] = useState(clienteEditar?.nuevaFecha ?? "");
+    const [sexo, setSexo] = useState(clienteEditar?.nuevoSexo ?? "");
+
+    /*useEffect(() => {
+        if (clienteEditar) {
+            setCedula(clienteEditar.nuevaCedula);
+            setNombres(clienteEditar.nuevoNombre);
+            setApellidos(clienteEditar.nuevosApellidos);
+            setFechaNacimiento(clienteEditar.nuevaFecha);
+            setSexo(clienteEditar.nuevoSexo);
+        }
+***editable={!clienteEditar}
+    }, []);*/
 
 
 
     const guardar = () => {
-        if (!cedula || !nombre) return;
+        if (!cedula || !nombre) {
+            Alert.alert("Error", "Cédula y Nombre son obligatorios");
+            return;
+        }
 
-        const nuevoCliente = {
-            nuevaCedula: cedula,
-            nuevoNombre: nombre,
-            nuevosApellidos: apellidos,
-            nuevaFecha: fechaNacimiento,
-            nuevoSexo: sexo,
-        };
-
-        guardarNuevo(nuevoCliente);
+        if (clienteEditar) {
+            actualizarCliente(clienteEditar.id, {
+                nuevaCedula: cedula,
+                nuevoNombre: nombre,
+                nuevosApellidos: apellidos,
+                nuevaFecha: fechaNacimiento,
+                nuevoSexo: sexo
+            });
+        } else {
+            const nuevoCliente = {
+                id: uuid.v4(),
+                nuevaCedula: cedula,
+                nuevoNombre: nombre,
+                nuevosApellidos: apellidos,
+                nuevaFecha: fechaNacimiento,
+                nuevoSexo: sexo
+            };
+            guardarNuevo(nuevoCliente);
+        }
         navigation.goBack();
-
-        setCedula('');
-        setNombres('');
-        setApellidos('');
-        setFechaNacimiento('');
-        setSexo('');
     };
+
     return (
+
         <View style={styles.container}>
+
             <View style={styles.containerF}>
-            <Text style={styles.textEna}>Registrar datos del cliente</Text>
+                <Text style={styles.textEna}>Registrar datos del cliente</Text>
 
-            {/*Input para agregar los datos del cliente*/}
-            <View style={styles.cajaTx}>
+                {/*Input para agregar los datos del cliente*/}
+                <View style={styles.cajaTx}>
 
-                <Text style={styles.lebel}>Cédula:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={cedula}
-                    onChangeText={(text) => setCedula(formatCedula(text))}
-                    placeholder="Ej: 365-130995-0002H"
-                    maxLength={16}
-                />
+                    <Text style={styles.lebel}>Cédula:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={cedula}
+                        onChangeText={(text) => setCedula(formatCedula(text))}
+                        placeholder="Ej: 365-130995-0002H"
+                        maxLength={16}
+                       
 
-                <Text style={styles.lebel}>Nombres:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={nombre}
-                    onChangeText={setNombres}
-                    placeholder="Ej: Juan Carlos"
-                />
+                    />
+                    <Text style={styles.lebel}>Nombres:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={nombre}
+                        onChangeText={setNombres}
+                        placeholder="Ej: Juan Carlos"
+                    
+                    />
+                    <Text style={styles.lebel}>Apellidos:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={apellidos}
+                        onChangeText={setApellidos}
+                        placeholder="Ej: Pérez López"
+                  
+                    />
 
-                <Text style={styles.lebel}>Apellidos:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={apellidos}
-                    onChangeText={setApellidos}
-                    placeholder="Ej: Pérez López"
-                />
+                    <Text style={styles.lebel}>Fecha de Nacimiento:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={fechaNacimiento}
+                        onChangeText={(text) => setFechaNacimiento(formatFecha(text))}
+                        placeholder="YYYY-MM-DD"
+                        keyboardType="numeric"
+                        maxLength={10}
 
-                <Text style={styles.lebel}>Fecha de Nacimiento:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={fechaNacimiento}
-                    onChangeText={(text) => setFechaNacimiento(formatFecha(text))}
-                    placeholder="YYYY-MM-DD"
-                    keyboardType="numeric"
-                    maxLength={10}
-                />
-                <Text style={styles.lebel}>Sexo:</Text>
+                    />
+                    <Text style={styles.lebel}>Sexo:</Text>
 
-                <View style={styles.picker}>
-                    <Picker
-                        selectedValue={sexo}
-                        onValueChange={(itemValue) => setSexo(itemValue)}
-                    >
-                        <Picker.Item label="Seleccione..." value="" style={styles.itemS} />
-                        <Picker.Item label="Masculino" value="Masculino" style={styles.itemS} />
-                        <Picker.Item label="Femenino" value="Femenino" style={styles.itemS} />
-                    </Picker>
+                    <View style={styles.picker}>
+                        <Picker
+                            selectedValue={sexo}
+                            onValueChange={(itemValue) => setSexo(itemValue)}
+                        >
+                            <Picker.Item label="Seleccione..." value="" style={styles.itemS} />
+                            <Picker.Item label="Masculino" value="Masculino" style={styles.itemS} />
+                            <Picker.Item label="Femenino" value="Femenino" style={styles.itemS} />
+                        </Picker>
+                    </View>
+
+
+
                 </View>
 
-
-
-            </View>
-
-            {/*Boton de Registrar y listar*/}
-            <View style={styles.contBoton}>
-                <TouchableOpacity style={styles.button} onPress={guardar}>
-                    <FontAwesome6 name="pen-clip" size={25} color="#2980b9" style={styles.pen} />
-                    <Text style={styles.buttonText}>Guardar</Text>
-                </TouchableOpacity>
-            </View>
+                {/*Boton de Registrar y listar*/}
+                <View style={styles.contBoton}>
+                    <TouchableOpacity style={styles.button} onPress={
+                        guardar
+                    }>
+                        <FontAwesome6 name="pen-clip" size={25} color="#2980b9" style={styles.pen} />
+                        <Text style={styles.buttonText}>Guardar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
 
@@ -141,9 +168,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: '#d6eaf8',
         alignItems: 'center',
-        
+
     },
-    containerF:{
+    containerF: {
         marginBottom: 100,
         marginLeft: 50,
     },
