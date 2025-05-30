@@ -66,7 +66,6 @@ export default function ListarClientes({ route, navigation }) {
         item.nuevaCedula?.toLowerCase().includes(textoBusqueda.toLowerCase())
     );
 
-    // Función renderItem CORRECTA - solo renderiza un item
     const renderItem = ({ item }) => (
         <View style={styles.Datos}>
             <TouchableOpacity
